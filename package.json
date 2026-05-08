@@ -1,5 +1,15 @@
 {
   "name": "strapi-plugin-backfill-db-migrations",
+  "author": {
+    "name": "Mateus Deitos",
+    "url": "https://github.com/mateusdeitos"
+  },
+  "bugs": {
+    "url": "https://github.com/mateusdeitos/strapi-backfill-db-migrations/issues"
+  },
+  "repository": {
+    "url": "https://github.com/mateusdeitos/strapi-backfill-db-migrations"
+  },
   "version": "0.1.0",
   "description": "Run Knex-style database migrations *after* Strapi's schema sync, ideal for backfilling data into newly created columns.",
   "license": "MIT",
