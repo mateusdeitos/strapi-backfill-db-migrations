@@ -63,11 +63,8 @@ program
   .description('Create a new migration file from the template')
   .argument('<name>', 'Short description (used as slug)')
   .option('--js', 'Create a JavaScript migration instead of TypeScript')
-  .option('-d, --dir <directory>', 'Override migrations directory (relative to cwd)')
-  .action(async (name: string, opts: { js?: boolean; dir?: string }) => {
-    const dir = opts.dir
-      ? path.resolve(process.cwd(), opts.dir)
-      : path.resolve(process.cwd(), defaultConfig.directory);
+  .action(async (name: string, opts: { js?: boolean }) => {
+    const dir = path.resolve(process.cwd(), defaultConfig.directory);
     await fse.ensureDir(dir);
     const ext = opts.js ? 'js' : 'ts';
     const filename = `${timestamp()}.${slugify(name)}.${ext}`;
