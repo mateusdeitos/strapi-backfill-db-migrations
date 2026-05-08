@@ -28,3 +28,14 @@ coverage/
 
 # Pack artifacts
 *.tgz
+
+# Playground fixture (Strapi build/runtime output, test-generated migrations)
+playground/.tmp/
+playground/.strapi/
+playground/build/
+playground/dist/
+playground/.strapi-updater.json
+playground/database/migrations-post/*
+!playground/database/migrations-post/.gitkeep
+playground/public/uploads/*
+!playground/public/uploads/.gitkeep

@@ -121,6 +121,38 @@ The env var takes precedence over `config.autoRun`.
 depends on a column populated by these migrations, make sure this plugin is
 registered before it.
 
+## Development
+
+### Unit tests
+
+Fast SQLite-backed tests for the runner internals:
+
+```bash
+npm test
+```
+
+### Integration tests
+
+End-to-end tests boot a real Strapi v5 fixture app (`playground/`) against
+Postgres and assert that migrations run after Strapi's schema sync.
+
+Requirements: Docker.
+
+```bash
+# Start Postgres in the background (uses docker-compose.yml at the repo root)
+npm run db:up
+
+# Run the integration suite (also rebuilds dist/ first via pretest:integration)
+npm run test:integration
+
+# Tear it down when done
+npm run db:down
+```
+
+The integration suite also runs in CI (`.github/workflows/test.yml`) using a
+`postgres` service container, so the same scenarios are validated on every
+push and pull request.
+
 ## Caveats
 
 - **No `down`**. Aligned with Strapi v5's core migrations, only `up` is
