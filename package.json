@@ -1,0 +1,81 @@
+{
+  "name": "strapi-plugin-backfill-db-migrations",
+  "version": "0.1.0",
+  "description": "Run Knex-style database migrations *after* Strapi's schema sync, ideal for backfilling data into newly created columns.",
+  "license": "MIT",
+  "keywords": [
+    "strapi",
+    "plugin",
+    "strapi-plugin",
+    "migrations",
+    "knex",
+    "backfill",
+    "post-schema-sync"
+  ],
+  "main": "./dist/server/src/index.js",
+  "types": "./dist/server/src/index.d.ts",
+  "exports": {
+    "./package.json": "./package.json",
+    "./strapi-server": {
+      "types": "./dist/server/src/index.d.ts",
+      "default": "./dist/server/src/index.js"
+    }
+  },
+  "files": [
+    "dist",
+    "bin",
+    "strapi-server.js",
+    "README.md",
+    "LICENSE"
+  ],
+  "bin": {
+    "strapi-post-migrations": "./bin/strapi-post-migrations.js"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "watch": "tsc -p tsconfig.build.json --watch",
+    "clean": "rimraf dist",
+    "test": "jest",
+    "test:integration": "jest --config jest.integration.config.js",
+    "pretest:integration": "npm run build",
+    "db:up": "docker compose up -d postgres",
+    "db:down": "docker compose down -v",
+    "prepublishOnly": "npm run clean && npm run build"
+  },
+  "dependencies": {
+    "commander": "^12.1.0",
+    "fast-glob": "^3.3.2",
+    "fs-extra": "^11.2.0",
+    "tsx": "^4.19.0"
+  },
+  "devDependencies": {
+    "@strapi/strapi": "^5.0.0",
+    "@types/fs-extra": "^11.0.4",
+    "@types/jest": "^29.5.12",
+    "@types/node": "^20.14.0",
+    "better-sqlite3": "^11.3.0",
+    "jest": "^29.7.0",
+    "knex": "^3.1.0",
+    "pg": "^8.20.0",
+    "rimraf": "^5.0.5",
+    "ts-jest": "^29.2.5",
+    "typescript": "~5.4.5"
+  },
+  "peerDependencies": {
+    "@strapi/strapi": "^5.0.0"
+  },
+  "peerDependenciesMeta": {
+    "@strapi/strapi": {
+      "optional": false
+    }
+  },
+  "strapi": {
+    "kind": "plugin",
+    "name": "backfill-db-migrations",
+    "displayName": "Backfill DB Migrations",
+    "description": "Run Knex-style migrations after Strapi's schema sync, useful for backfilling newly created columns."
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

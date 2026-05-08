@@ -1,0 +1,18 @@
+{
+  "name": "playground",
+  "private": true,
+  "version": "0.0.0",
+  "description": "Minimal Strapi app used by the plugin's integration tests. Not published.",
+  "scripts": {
+    "develop": "strapi develop",
+    "start": "strapi start",
+    "build": "strapi build"
+  },
+  "dependencies": {
+    "@strapi/strapi": "^5.0.0",
+    "pg": "^8.11.3"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
