@@ -4,7 +4,7 @@ import { Command } from 'commander';
 
 import { defaultConfig } from '../server/src/config';
 import { runPostMigrations, listMigrationFiles, resolveDirectory } from '../server/src/runner';
-import { ensureTrackingTable, listExecuted } from '../server/src/runner/storage';
+import { listExecuted } from '../server/src/runner/storage';
 import type { PluginConfig, StrapiLike } from '../server/src/types';
 import { jsTemplate, slugify, timestamp, tsTemplate } from './templates';
 
@@ -56,7 +56,7 @@ const program = new Command();
 program
   .name('strapi-post-migrations')
   .description("Manage Strapi post-schema-sync (backfill) migrations")
-  .version('0.1.0');
+  .version('0.1.1');
 
 program
   .command('create')
@@ -84,11 +84,13 @@ program
       const dir = resolveDirectory(strapi.dirs.app.root, config.directory);
       await fse.ensureDir(dir);
 
+      // Read-only: creating the table here would race with an instance that is
+      // booting and creating it under the migration lock.
       const knex = strapi.db.connection;
-      await ensureTrackingTable(knex, config.tableName);
+      const hasTable = await knex.schema.hasTable(config.tableName);
 
       const files = await listMigrationFiles(dir);
-      const executed = new Set(await listExecuted(knex, config.tableName));
+      const executed = new Set(hasTable ? await listExecuted(knex, config.tableName) : []);
       const rows = files.map((f) => ({
         name: f.name,
         status: executed.has(f.name) ? 'executed' : 'pending',
