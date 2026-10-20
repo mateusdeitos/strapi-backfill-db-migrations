@@ -74,14 +74,42 @@ table, and the Strapi boot is aborted so the failure is loud.
 
 During `bootstrap`, the plugin:
 
-1. Ensures the tracking table exists (created on first run).
-2. Lists files in the migrations directory.
-3. Compares against the tracking table to find pending migrations.
-4. Runs each pending migration (in alphabetical order) inside a transaction.
-5. Records successful migrations in the tracking table.
+1. Takes a database lock keyed on the tracking table name (see
+   [Concurrent boots](#concurrent-boots)), waiting if another instance holds it.
+2. Ensures the tracking table exists (created on first run).
+3. Lists files in the migrations directory.
+4. Compares against the tracking table to find pending migrations.
+5. Runs each pending migration (in alphabetical order) inside a transaction.
+6. Records successful migrations in the tracking table.
+7. Releases the lock, whether the run succeeded or failed.
 
 If there are no pending migrations, boot continues normally with a single log
 line.
+
+### Concurrent boots
+
+Several instances can boot against the same database at once, for example an
+ECS service with `desiredCount > 1` during a rolling deploy. Steps 2–6 run under
+a lock, so exactly one instance creates the tracking table and applies each
+pending migration. The others log
+`another instance holds … waiting for it to finish`, poll every 500 ms, then
+re-read the tracking table and find nothing left to run. Waiting is not a
+failure: those instances finish booting normally.
+
+| Client | Lock | Notes |
+| --- | --- | --- |
+| PostgreSQL | `pg_try_advisory_lock(<bigint>)` | Session lock; the key is derived from `tableName`. Advisory locks are per database. |
+| MySQL / MariaDB | `GET_LOCK('post_migrations_<hash>', 0)` | Session lock; the name hashes the database name and `tableName`, since `GET_LOCK` names are server-wide. |
+| SQLite | none | No-op. SQLite apps run as a single instance; do not point several processes at one SQLite file and boot them at once. |
+
+The lock is held on a dedicated pool connection, and the tracking-table checks
+and each migration's transaction run on that same connection, so a run never
+outlives its lock and needs no extra pool slot. If the instance holding the lock
+dies, the database ends its session and releases the lock; a waiting instance
+then takes over and runs the migration that was rolled back.
+
+The CLI `up` command takes the same lock, so it is safe to run alongside a
+booting instance. `status` only reads.
 
 ## CLI
 
@@ -161,6 +189,12 @@ push and pull request.
   unsafe to serve from. Investigate, fix, and restart.
 - **One transaction per file**. Cross-file consistency is not guaranteed; keep
   related changes in the same migration.
+- **Long migrations delay other instances' boots**. Instances that boot while a
+  migration runs wait for it before they start serving. Size health-check grace
+  periods (e.g. ECS `healthCheckGracePeriodSeconds`) for your slowest backfill,
+  or run it ahead of the deploy with `npx strapi-post-migrations up`.
+- **Concurrent boots need PostgreSQL or MySQL**. The lock is a no-op on SQLite
+  and on any other client (which logs a warning).
 
 ## License
 

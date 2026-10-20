@@ -197,8 +197,8 @@ describe('ensureTrackingTable', () => {
   it('is idempotent', async () => {
     const knex = makeKnex();
     try {
-      await ensureTrackingTable(knex, TABLE);
-      await ensureTrackingTable(knex, TABLE);
+      expect(await ensureTrackingTable(knex, TABLE)).toBe(true);
+      expect(await ensureTrackingTable(knex, TABLE)).toBe(false);
       expect(await knex.schema.hasTable(TABLE)).toBe(true);
     } finally {
       await knex.destroy();
